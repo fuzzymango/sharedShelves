@@ -1,5 +1,5 @@
 # SHARED SHELVES
-# version 0.0.3
+# version 0.0.4
 # developed by Adam Thompson 2018
 # updated by Isaac Spiegel 2021
 # isaacspiegel.com
@@ -18,9 +18,7 @@ VALID_GIZMO_FILE_TYPES = ['.gizmo', '.nk']
 TERMINAL_WINDOW_LEN = 110
 
 
-# GET DROPBOX LOCATION
-# returns the filepath where dropbox syncs
-# account_type: the type of dropbox account the user has. 'personal' or 'buisiness'
+
 def get_dropbox_location(account_type):
 	info_path = create_dropbox_info_path('LOCALAPPDATA')
 	info_dict = get_dictionary_from_path_to_json(info_path)
@@ -30,7 +28,7 @@ def create_dropbox_info_path(appdata_str):
 	path = os.path.join(os.environ[appdata_str], r'Dropbox\info.json')
 	if os.path.exists(path):
 		return path
-	return False
+	return None
 
 def get_dictionary_from_path_to_json(info_path):
 	with open(info_path, 'r') as f:
@@ -38,12 +36,24 @@ def get_dictionary_from_path_to_json(info_path):
 
 	return json.loads(text)	
 
+# FIND SHARED TOOLS FOLDER
+# walks through the synced dropbox filepath looking for the shared nuke tools folder
+# path: the filepath pointing to the synced dropbox folder
+def find_shared_tools_folder(path):
+	for roots, dirs, files in os.walk(path, topdown=True):
+		if SHARED_TOOLS_FOLDER_NAME in dirs:
+			return os.path.join(roots, SHARED_TOOLS_FOLDER_NAME)
+
+
+# GET NUKE SETUP PATH
+# returns the filepath where dropbox syncs
+# account_type: the type of dropbox account the user has. 'personal' or 'buisiness'
 def get_nuke_setup_path(account_type):
 	dropbox_sync_path = get_dropbox_location(account_type)
-	path = os.path.join(dropbox_sync_path, SHARED_TOOLS_FOLDER_NAME)
+	path = find_shared_tools_folder(dropbox_sync_path)
 	if os.path.exists(path):
 		return path
-	return False
+	return None
 
 sharedShelvesName = "Shared Tools"
 SHARED_UTILITIES_MENU_NAME = 'Shared Utilities'
