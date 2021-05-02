@@ -10,7 +10,10 @@ import sys
 import json
 import re
 
-# sharedShelvesPath = "D:\Gizmos_Master"
+SHARED_TOOLS_FOLDER_NAME = r'sharedNukeTools'
+
+VALID_ICON_FILE_TYPES = ['.png', '.jpg']
+VALID_GIZMO_FILE_TYPES = ['.gizmo', '.nk']
 
 
 
@@ -33,26 +36,24 @@ def get_dictionary_from_path_to_json(info_path):
 
 def get_nuke_setup_path(account_type):
 	dropbox_sync_path = get_dropbox_location(account_type)
-	path = os.path.join(dropbox_sync_path, r'sharedNukeTools')
+	path = os.path.join(dropbox_sync_path, SHARED_TOOLS_FOLDER_NAME)
 	if os.path.exists(path):
 		return path
 	return False
 
 sharedShelvesName = "Shared Tools"
-sharedShelvesPath = get_nuke_setup_path('personal')
+SHARED_SHELVES_PATH = get_nuke_setup_path('personal')
 
 
 def create_toolbar():
-	sharedFolders = get_folders_in_directory(sharedShelvesPath)
+	sharedFolders = get_folders_in_directory(SHARED_SHELVES_PATH)
 
 	toolbar = nuke.toolbar("Nodes")
-	sharedToolbar = toolbar.addMenu(sharedShelvesName, icon=os.path.join(sharedShelvesPath, "icons/sharedToolbar.png"))
+	sharedToolbar = toolbar.addMenu(sharedShelvesName, icon=os.path.join(SHARED_SHELVES_PATH, "icons/sharedToolbar.png"))
 	sharedToolbar.addCommand('update', 'SharedShelves.create_toolbar()')
 
-	nuke.pluginAddPath(sharedShelvesPath, False)
-	# if sharedDirectory in sys.path:
-	# 	sys.path.remove(directory)
-	populate_toolbar(sharedShelvesPath, sharedToolbar)
+	print 'LOADING PLUGINS.....'
+	populate_toolbar(SHARED_SHELVES_PATH, sharedToolbar)
 
 
 def get_folders_in_directory(path):
@@ -68,40 +69,57 @@ def get_plugins_in_directory(path):
 	return pluginList
 
 def get_gizmo_name(gizmo):
-	if not '.gizmo' in gizmo or not '.nk' in gizmo: return False
+	if [ext for ext in VALID_GIZMO_FILE_TYPES if(ext in gizmo)]:
+		gizmoName = os.path.splitext(gizmo)[0]
+		return gizmoName
 
-	gizmoName = os.path.splitext(gizmo)[0]
-	return gizmoName
+	return False
 
-def create_toolbar_shelf_name(path):
-	# rString = "(?={}).*".format(path)
-	shelfName = re.findall('(?=sharedNukeTools).*', path)
-	print shelfName[0]
-	return shelfName[0]
+def create_toolbar_shelf_name(path, gizmoName):
+	rString = "(?={}).*".format(SHARED_TOOLS_FOLDER_NAME)
+	shelfNameBkSlash = re.findall(rString, path)
+	shelfNameFwdSlash = shelfNameBkSlash[0].replace(os.sep, '/')
+	return '{}/{}'.format(shelfNameFwdSlash, gizmoName)
 
+def get_gizmo_icon(path, gizmoName):
+	files = get_plugins_in_directory(path)
+	for file in files:
+		if gizmoName not in file: continue
+		fileExtension = os.path.splitext(file)[1]
+		if fileExtension in VALID_GIZMO_FILE_TYPES: continue
+		if fileExtension in VALID_ICON_FILE_TYPES:
+			return file
+		return None
+
+
+# POPULATE TOOLBAR
+# recursively loops through a folder structure adding any .nk or .gizmo files to the shared toolbar
+# sharedDirectory: the filepath to look for plugins
+# sharedToolbar: the nuke toolbar where the plugins will be added
 def populate_toolbar(sharedDirectory, sharedToolbar):
 	print 'SEARCHING: ' + sharedDirectory
-
+	nuke.pluginAddPath(sharedDirectory, False)
 	plugIns = get_plugins_in_directory(sharedDirectory)
 	if plugIns:
-		# print 'PLUGINS:'
 		for plugIn in plugIns:
-			#gizmoName = get_gizmo_name(plugIn)
-			#if not gizmoName: continue
-			# createNode = "nuke.createNode('" + gizmoName + "')"
-			create_toolbar_shelf_name(sharedDirectory)
-
-
+			textOutput = plugIn + "...................."
+			gizmoName = get_gizmo_name(plugIn)
+			if not gizmoName: continue
+			try:
+				shelfPath = create_toolbar_shelf_name(sharedDirectory, gizmoName)
+				createNode = "nuke.createNode('{}')".format(gizmoName)
+				icon = get_gizmo_icon(sharedDirectory, gizmoName)
+				sharedToolbar.addCommand(shelfPath, createNode, icon=icon)
+				print textOutput + 'SUCCESS'
+			except:
+				print textOutput + 'FAILED'
 
 	else:
-		# print 'NO PLUGINS'
+		print 'NO PLUGINS FOUND'
 		pass
 
 	folders = get_folders_in_directory(sharedDirectory)
 	if not folders:
-		# print 'NO FOLDERS'
 		return
-	# print 'FOLDERS:'
 	for folder in folders:
-		# print folder
 		populate_toolbar(os.path.join(sharedDirectory, folder), sharedToolbar)
