@@ -1,5 +1,5 @@
 # SHARED SHELVES
-# version 0.0.4
+# version 0.0.5
 # developed by Adam Thompson 2018
 # updated by Isaac Spiegel 2021
 # isaacspiegel.com
@@ -60,10 +60,18 @@ SHARED_UTILITIES_MENU_NAME = 'Shared Utilities'
 SHARED_SHELVES_PATH = get_nuke_setup_path('personal')
 SHARED_SHELVES_PATH_GIZMOS = os.path.join(SHARED_SHELVES_PATH, 'gizmos')
 SHARED_SHELVES_PATH_TOOLSETS = os.path.join(SHARED_SHELVES_PATH, 'ToolSets')
+SHARED_SHELVES_PATH_KNOB_DEFAULTS = os.path.join(SHARED_SHELVES_PATH, 'knob_defaults.py')
+
+# MAIN
+# execute this function to start the program
+def main():
+	create_toolbar()
+	print 'SETTING KNOB DEFAULTS...\n'
+	set_knob_defaults(SHARED_SHELVES_PATH_KNOB_DEFAULTS)
+
 
 # CREATE TOOLBAR
 # creates a Nuke menu toolbar to store tools synced from Dropbox
-# execute this function to start the program
 def create_toolbar():
 	sharedFolders = get_folders_in_directory(SHARED_SHELVES_PATH)
 
@@ -181,3 +189,19 @@ def populate_toolsets_menu(directory, sharedToolbar):
 		return
 	for folder in folders:
 		populate_toolsets_menu(os.path.join(directory, folder), sharedToolbar)
+
+# SET KNOB DEFAULTS
+# reads executes the knob_defaults.py file in the shared dropbox folder
+# scriptPath: the filepath leading to the knob_defaults.py file
+def set_knob_defaults(scriptPath):
+	if not os.path.exists(scriptPath):
+		print 'UNABLE TO LOCATE knob_defaults.py'
+		return
+	
+	try: 
+		path = scriptPath
+		execfile(path)
+	except Exception as e:
+		errorMessage = 'ERROR: {}\nFailed to set knob defaults. Check the knob_defaults.py file.'.format(str(e))
+		nuke.message(errorMessage)
+		
