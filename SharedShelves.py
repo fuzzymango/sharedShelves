@@ -1,5 +1,5 @@
 # SHARED SHELVES
-# version 0.0.5
+# version 0.0.6
 # developed by Adam Thompson 2018
 # updated by Isaac Spiegel 2021
 # isaacspiegel.com
@@ -13,7 +13,7 @@ import re
 SHARED_TOOLS_FOLDER_NAME = r'sharedNukeTools'
 
 VALID_ICON_FILE_TYPES = ['.png', '.jpg']
-VALID_GIZMO_FILE_TYPES = ['.gizmo', '.nk']
+VALID_GIZMO_FILE_TYPES = ['.gizmo', '.nk', '.hroxind']
 
 TERMINAL_WINDOW_LEN = 110
 
