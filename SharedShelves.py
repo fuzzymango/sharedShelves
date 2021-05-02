@@ -1,5 +1,8 @@
-# -*- coding: utf-8 -*-
-# Adam Thompson 2018
+# SHARED SHELVES
+# version 0.0.2
+# developed by Adam Thompson 2018
+# updated by Isaac Spiegel 2021
+# isaacspiegel.com
 
 import nuke
 import os
