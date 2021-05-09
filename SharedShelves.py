@@ -1,8 +1,12 @@
 # SHARED SHELVES
-# version 0.0.6
+# version 0.1.0
 # developed by Adam Thompson 2018
 # updated by Isaac Spiegel 2021
 # isaacspiegel.com
+
+# place this in menu.py
+# import SharedShelves
+# SharedShelves.main()
 
 import nuke
 import os
@@ -10,7 +14,7 @@ import sys
 import json
 import re
 
-SHARED_TOOLS_FOLDER_NAME = r'sharedNukeTools'
+SHARED_TOOLS_FOLDER_NAME = r'sharedNukeToolsBETA'
 
 VALID_ICON_FILE_TYPES = ['.png', '.jpg']
 VALID_GIZMO_FILE_TYPES = ['.gizmo', '.nk', '.hroxind']
@@ -61,13 +65,17 @@ SHARED_SHELVES_PATH = get_nuke_setup_path('personal')
 SHARED_SHELVES_PATH_GIZMOS = os.path.join(SHARED_SHELVES_PATH, 'gizmos')
 SHARED_SHELVES_PATH_TOOLSETS = os.path.join(SHARED_SHELVES_PATH, 'ToolSets')
 SHARED_SHELVES_PATH_KNOB_DEFAULTS = os.path.join(SHARED_SHELVES_PATH, 'knob_defaults.py')
+SHARED_SHELVES_PATH_PYTHON_SCRIPTS = os.path.join(SHARED_SHELVES_PATH, 'scripts')
 
 # MAIN
 # execute this function to start the program
 def main():
+	print 'BETA BETA BETA'
 	create_toolbar()
-	print 'SETTING KNOB DEFAULTS...\n'
+	print 'SETTING KNOB DEFAULTS...'
 	set_knob_defaults(SHARED_SHELVES_PATH_KNOB_DEFAULTS)
+	print 'LOADING PYTHON SCRIPTS...\n'
+	populate_scripts_menu(SHARED_SHELVES_PATH_PYTHON_SCRIPTS)
 
 
 # CREATE TOOLBAR
@@ -201,7 +209,23 @@ def set_knob_defaults(scriptPath):
 	try: 
 		path = scriptPath
 		execfile(path)
+		print 'KNOB DEFAULTS LOADED\n'
 	except Exception as e:
 		errorMessage = 'ERROR: {}\nFailed to set knob defaults. Check the knob_defaults.py file.'.format(str(e))
 		nuke.message(errorMessage)
-		
+
+# POPULATE SCRIPT MENU
+# loads and adds python scripts to a Nuke menu 
+# scrips must be hardcoded here in order to be loaded and added
+# scriptsFolderDirectory: the filepath pointing to where the scripts are stored
+def populate_scripts_menu(scriptsFolderDirectory):
+	print 'SEARCHING: ' + scriptsFolderDirectory
+	if not os.path.exists(scriptsFolderDirectory):
+		print 'UNABLE TO LOCATE SCRIPTS DIRECTORY'
+		return
+
+	nuke.pluginAddPath(scriptsFolderDirectory)
+	nuke.pluginAddPath(os.path.join(scriptsFolderDirectory, 'BF_shotstarter'))
+
+	scriptsMenu = nuke.menu('Nuke').addMenu('Shared Scripts')
+	scriptsMenu.addCommand('BF shot starter', 'import BF_shotstarter; BF_shotstarter.start()')
