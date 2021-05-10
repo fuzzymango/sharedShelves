@@ -1,5 +1,5 @@
 # SHARED SHELVES
-# version 0.1.0
+# version 0.1.1
 # developed by Adam Thompson 2018
 # updated by Isaac Spiegel 2021
 # isaacspiegel.com
@@ -15,15 +15,17 @@ import json
 import re
 
 SHARED_TOOLS_FOLDER_NAME = r'sharedNukeToolsBETA'
+LUT_FILE_NAME = 'blackf_REC_v2.cube'
+
+
 
 VALID_ICON_FILE_TYPES = ['.png', '.jpg']
 VALID_GIZMO_FILE_TYPES = ['.gizmo', '.nk', '.hroxind']
-
 TERMINAL_WINDOW_LEN = 110
-
-
+ACCOUNT_TYPE = 'personal'
 
 def get_dropbox_location(account_type):
+	ACCOUNT_TYPE = account_type
 	info_path = create_dropbox_info_path('LOCALAPPDATA')
 	info_dict = get_dictionary_from_path_to_json(info_path)
 	return info_dict[account_type]['path']
@@ -106,6 +108,20 @@ def get_plugins_in_directory(path):
 		if os.path.isfile(os.path.join(path, file))]
 
 	return pluginList
+
+def find_folder_in_directory(path, folderName):
+  for roots, dirs, files in os.walk(path, topdown=True):
+    if folderName in dirs:
+      folderPath = os.path.join(roots, folderName)
+  if os.path.exists(folderPath):
+    return folderPath
+  return None	
+
+def find_file_in_directory(path, fileName):
+  fileList = [file for file in os.listdir(path)
+    if os.path.isfile(os.path.join(path, file))]
+
+  return fileList
 
 def get_gizmo_name(gizmo):
 	if [ext for ext in VALID_GIZMO_FILE_TYPES if(ext in gizmo)]:
@@ -214,6 +230,36 @@ def set_knob_defaults(scriptPath):
 		errorMessage = 'ERROR: {}\nFailed to set knob defaults. Check the knob_defaults.py file.'.format(str(e))
 		nuke.message(errorMessage)
 
+
+
+def shot_starter():
+	toolsetPath = os.path.join(SHARED_SHELVES_PATH_PYTHON_SCRIPTS, 'BF_shotstarter', 'BF_ShotStarter.nkind')
+	nuke.loadToolset(toolsetPath)
+
+	dropbox_sync_path = get_dropbox_location(ACCOUNT_TYPE)
+	lutFolderPath = find_folder_in_directory(dropbox_sync_path, 'lut')
+	lutFile = find_file_in_directory(lutFolderPath, LUT_FILE_NAME)
+	lutFilePath = os.path.join(lutFolderPath, lutFile[0]).replace(os.sep, '/')
+	if not os.path.exists(lutFilePath):
+		errorMessage = 'ERROR: LUT file not found\\n{}'.format(lutFilePath)
+		nuke.message(errorMessage)
+		return
+
+	viewerInput = nuke.toNode('VIEWER_INPUT')
+	viewerInput.begin()
+	viewerInputOCIOtransform = nuke.toNode('OCIOFileTransform_LUT_FILE')
+	viewerInputOCIOtransform['file'].setValue(lutFilePath)
+	viewerInput.end()
+
+	bakeLUT = nuke.toNode('OCIOFileTransform_BAKE_LUT')
+	bakeLUT['file'].setValue(lutFilePath)
+
+	projectFormat = "{} {} {}".format(2880, 2160, 2, 'black_firday')
+	
+	nuke.root()['format'].setValue(nuke.addFormat(projectFormat))
+
+
+
 # POPULATE SCRIPT MENU
 # loads and adds python scripts to a Nuke menu 
 # scrips must be hardcoded here in order to be loaded and added
@@ -228,4 +274,9 @@ def populate_scripts_menu(scriptsFolderDirectory):
 	nuke.pluginAddPath(os.path.join(scriptsFolderDirectory, 'BF_shotstarter'))
 
 	scriptsMenu = nuke.menu('Nuke').addMenu('Shared Scripts')
-	scriptsMenu.addCommand('BF shot starter', 'import BF_shotstarter; BF_shotstarter.start()')
+	# scripts menu syntax for adding other scripts
+	# scriptsMenu.addCommand('script menu name', 'import scriptName; scriptName.startFunc()')
+	scriptsMenu.addCommand('BF Shot Starter', lambda:shot_starter())
+	scriptsMenu.addCommand('Read from Write', 'import read_from_write; read_from_write.read_from_write()', 'alt+r', shortcutContext = 2)
+
+	print 'SCRIPTS LOADED'
