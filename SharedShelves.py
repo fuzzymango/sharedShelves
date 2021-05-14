@@ -1,5 +1,5 @@
 # SHARED SHELVES
-# version 0.1.1
+# version 0.2.0
 # developed by Adam Thompson 2018
 # updated by Isaac Spiegel 2021
 # isaacspiegel.com
@@ -14,7 +14,7 @@ import sys
 import json
 import re
 
-SHARED_TOOLS_FOLDER_NAME = r'sharedNukeToolsBETA'
+SHARED_TOOLS_FOLDER_NAME = r'sharedNukeTools'
 LUT_FILE_NAME = 'blackf_REC_v2.cube'
 
 
