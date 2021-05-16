@@ -1,5 +1,5 @@
 # SHARED SHELVES
-# version 0.2.0
+# version 0.2.1
 # developed by Adam Thompson 2018
 # updated by Isaac Spiegel 2021
 # isaacspiegel.com
@@ -272,11 +272,13 @@ def populate_scripts_menu(scriptsFolderDirectory):
 
 	nuke.pluginAddPath(scriptsFolderDirectory)
 	nuke.pluginAddPath(os.path.join(scriptsFolderDirectory, 'BF_shotstarter'))
+	nuke.pluginAddPath(os.path.join(scriptsFolderDirectory, 'postal_1.0.1'))
 
 	scriptsMenu = nuke.menu('Nuke').addMenu('Shared Scripts')
 	# scripts menu syntax for adding other scripts
 	# scriptsMenu.addCommand('script menu name', 'import scriptName; scriptName.startFunc()')
 	scriptsMenu.addCommand('BF Shot Starter', lambda:shot_starter())
 	scriptsMenu.addCommand('Read from Write', 'import read_from_write; read_from_write.read_from_write()', 'alt+r', shortcutContext = 2)
+	scriptsMenu.addCommand('Postal Parent', 'import postal_main; postal_main.createParent()', 'F9', shortcutContext=2)
 
 	print 'SCRIPTS LOADED'
