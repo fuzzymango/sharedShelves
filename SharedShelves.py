@@ -1,6 +1,6 @@
 """
 SharedShelves.py
-19 August 2022
+22 August 2022
 Isaac Spiegel
 isaacspiegel.com
 TODO: create a script to add the user's currently selected nodes to the shared Dropbox folder
@@ -26,7 +26,7 @@ class SharedShelves:
             The type of Dropbox account the user is in possession of
         """
         self.VALID_ICON_FILE_TYPES = ['.png', '.jpg', '.jpeg']
-        self.VALID_GIZMO_FILE_TYPES = ['.gizmo']
+        self.VALID_GIZMO_FILE_TYPES = ['.gizmo', '.nk']
         self.VALID_TOOLSET_FILE_TYPES = ['.gizmo', '.nk']
         self.USER_OS = platform.system()
 
@@ -36,6 +36,9 @@ class SharedShelves:
         self.dropbox_install_location = self.find_dropbox_install_directory()
         self.dropbox_tools_folder_location = self.find_folder_in_dropbox(self.dropbox_install_location,
                                                                          self.dropbox_tools_folder)
+
+        menu = nuke.menu('Nuke').addMenu('SharedShelves')
+        menu.addCommand('Publish Selection to Dropbox', f"SharedShelves.publish_selection(\"{self.dropbox_tools_folder_location}/\")")
 
     def find_dropbox_install_directory(self) -> str or None:
         """
@@ -123,7 +126,13 @@ class SharedShelves:
             for file in folder.glob('*.*'):
                 if file.suffix in self.VALID_GIZMO_FILE_TYPES:
                     shelf_name = self.retrieve_relative_path(file, relative_to=folder_name)
-                    create_node = f"nuke.createNode('{file.stem}')"
+                    if file.suffix == '.gizmo':
+                        create_node = f"nuke.createNode('{file.stem}')"
+                    elif file.suffix == '.nk':
+                        create_node = f"nuke.createNode('{file.stem + file.suffix}')"
+                    else:
+                        nuke.tprint(f"SharedShelves failed to load: {file}")
+                        continue
                     if file.stem in icons:
                         icon_title = icons[file.stem]
                     else:
@@ -220,3 +229,48 @@ class SharedShelves:
         nuke.message(f"Unable to locate the folder \"{folder_name}\" in location: \"{folder_path}\"\n"
                      f"Check that the folder name provided EXACTLY matches the name of the folder found on Dropbox"
                      f"(case-sensitive)")
+
+    @staticmethod
+    def publish_selection(folder_path: Path) -> None:
+        """
+        TODO: verify that Dropbox sync folder exists
+        TODO: add a check to see the type of Nuke the user is on. If using NC or indie or the ple, throw a warning saying that this feature
+        is unavailable.
+        TODO: add selector for the extension, either .nk or .gizmo depending on user selection
+        - if node selection only contains a group, give the option to save as .gizmo.
+        - Find some way to get .gizmo and .nk as menu items in the file browser
+        - catch when the user mis-types a file extension and auto-correct it
+
+        :return:
+        """
+        nuke_ext = '.nk'
+        user_selection = nuke.selectedNodes()
+        if not user_selection:
+            nuke.message('No nodes selected.')
+            return
+        if len(user_selection) == 1 and type(user_selection[0]) in [nuke.Group, nuke.Gizmo]:
+            nuke_ext = '.gizmo'
+
+        try:
+            # save_path = nuke.getFilename('Publish Selection to Dropbox', '*' + nuke_ext, folder_path, 'save')
+            save_path = nuke.getFilename('Publish Selection to Dropbox', '*.nk; *.gizmo', folder_path, 'save')
+
+            if not save_path:
+                return
+
+            (root, ext) = os.path.splitext(save_path)
+            if not ext:
+                save_path += nuke_ext
+            elif ext == '.nk' and ext != nuke_ext:
+                save_path = save_path[0:-3] + nuke_ext
+            elif ext == '.gizmo' and ext != nuke_ext:
+                save_path = save_path[0:-6] + nuke_ext
+
+            if os.path.exists(save_path):
+                if not nuke.ask(f'Overwrite existing {save_path}?'):
+                    return
+            nuke.nodeCopy(save_path)
+        except Exception as e:
+            nuke.tprint(e)
+
+
