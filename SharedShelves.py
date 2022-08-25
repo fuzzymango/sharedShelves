@@ -1,6 +1,6 @@
 """
 SharedShelves.py
-22 August 2022
+24 August 2022
 Isaac Spiegel
 isaacspiegel.com
 TODO: create a script to add the user's currently selected nodes to the shared Dropbox folder
@@ -11,7 +11,6 @@ import os
 import json
 from pathlib import Path
 import platform
-
 
 class SharedShelves:
     def __init__(self, dropbox_tools_folder: str = 'sharedNukeTools', icon: str = None,
@@ -36,7 +35,6 @@ class SharedShelves:
         self.dropbox_install_location = self.find_dropbox_install_directory()
         self.dropbox_tools_folder_location = self.find_folder_in_dropbox(self.dropbox_install_location,
                                                                          self.dropbox_tools_folder)
-
         menu = nuke.menu('Nuke').addMenu('SharedShelves')
         menu.addCommand('Publish Selection to Dropbox', f"SharedShelves.publish_selection(\"{self.dropbox_tools_folder_location}/\")")
 
@@ -233,38 +231,38 @@ class SharedShelves:
     @staticmethod
     def publish_selection(folder_path: Path) -> None:
         """
-        TODO: verify that Dropbox sync folder exists
-        TODO: add a check to see the type of Nuke the user is on. If using NC or indie or the ple, throw a warning saying that this feature
-        is unavailable.
-        TODO: add selector for the extension, either .nk or .gizmo depending on user selection
-        - if node selection only contains a group, give the option to save as .gizmo.
-        - Find some way to get .gizmo and .nk as menu items in the file browser
-        - catch when the user mis-types a file extension and auto-correct it
+        Saves and uploads the user-selected nodes to the shared Dropbox folder. Because Nuke Indie and Non-Commercial
+        encrypt their save files, this feature is not available when using those versions.
 
         :return:
         """
+        envs = ['indie', 'nc']
+        for i in envs:
+            if nuke.env[i]:
+                nuke.message('This feature is not available in the Non-Commercial and Indie versions of Nuke.')
+                return
+
         nuke_ext = '.nk'
+        publish_name = 'TOOLSET_NAME'
         user_selection = nuke.selectedNodes()
         if not user_selection:
             nuke.message('No nodes selected.')
             return
         if len(user_selection) == 1 and type(user_selection[0]) in [nuke.Group, nuke.Gizmo]:
             nuke_ext = '.gizmo'
+            publish_name = user_selection[0].knob('name').getValue()
 
         try:
-            # save_path = nuke.getFilename('Publish Selection to Dropbox', '*' + nuke_ext, folder_path, 'save')
-            save_path = nuke.getFilename('Publish Selection to Dropbox', '*.nk; *.gizmo', folder_path, 'save')
+            save_path = nuke.getFilename('Publish Selection to Dropbox', '*.nk; *.gizmo', folder_path+publish_name+nuke_ext, 'save')
 
             if not save_path:
                 return
 
             (root, ext) = os.path.splitext(save_path)
             if not ext:
-                save_path += nuke_ext
-            elif ext == '.nk' and ext != nuke_ext:
-                save_path = save_path[0:-3] + nuke_ext
-            elif ext == '.gizmo' and ext != nuke_ext:
-                save_path = save_path[0:-6] + nuke_ext
+                save_path += '.nk'
+            elif ext not in ['.nk', '.gizmo']:
+                save_path = save_path[0:-3] + 'nk'
 
             if os.path.exists(save_path):
                 if not nuke.ask(f'Overwrite existing {save_path}?'):
@@ -272,5 +270,3 @@ class SharedShelves:
             nuke.nodeCopy(save_path)
         except Exception as e:
             nuke.tprint(e)
-
-
