@@ -1,6 +1,6 @@
 """
 SharedShelves.py
-24 August 2022
+26 August 2022
 Isaac Spiegel
 isaacspiegel.com
 TODO: create a script to add the user's currently selected nodes to the shared Dropbox folder
@@ -11,6 +11,7 @@ import os
 import json
 from pathlib import Path
 import platform
+
 
 class SharedShelves:
     def __init__(self, dropbox_tools_folder: str = 'sharedNukeTools', icon: str = None,
@@ -36,7 +37,8 @@ class SharedShelves:
         self.dropbox_tools_folder_location = self.find_folder_in_dropbox(self.dropbox_install_location,
                                                                          self.dropbox_tools_folder)
         menu = nuke.menu('Nuke').addMenu('SharedShelves')
-        menu.addCommand('Publish Selection to Dropbox', f"SharedShelves.publish_selection(\"{self.dropbox_tools_folder_location}/\")")
+        menu.addCommand('Publish Selection to Dropbox',
+                        f"SharedShelves._publish_selection(\"{self.dropbox_tools_folder_location}\")")
 
     def find_dropbox_install_directory(self) -> str or None:
         """
@@ -229,7 +231,7 @@ class SharedShelves:
                      f"(case-sensitive)")
 
     @staticmethod
-    def publish_selection(folder_path: Path) -> None:
+    def _publish_selection(folder_path: Path) -> None:
         """
         Saves and uploads the user-selected nodes to the shared Dropbox folder. Because Nuke Indie and Non-Commercial
         encrypt their save files, this feature is not available when using those versions.
@@ -253,7 +255,8 @@ class SharedShelves:
             publish_name = user_selection[0].knob('name').getValue()
 
         try:
-            save_path = nuke.getFilename('Publish Selection to Dropbox', '*.nk; *.gizmo', folder_path+publish_name+nuke_ext, 'save')
+            save_path = nuke.getFilename('Publish Selection to Dropbox', '*.nk; *.gizmo',
+                                         folder_path + publish_name + nuke_ext, 'save')
 
             if not save_path:
                 return
