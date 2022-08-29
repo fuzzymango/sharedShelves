@@ -3,7 +3,6 @@ SharedShelves.py
 26 August 2022
 Isaac Spiegel
 isaacspiegel.com
-TODO: create a script to add the user's currently selected nodes to the shared Dropbox folder
 """
 
 import nuke
