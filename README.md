@@ -1,6 +1,6 @@
 # Sync your Gizmos and ToolSets from Dropbox to Nuke!
 
-The SharedShelves Python script an out-of-the-box pipeline solution for small production studios (or individuals) that enables multiple 
+The SharedShelves Python script is an out-of-the-box pipeline solution for small production studios (or individuals) that enables multiple 
 remote artists to easily share their gizmos, templates, plug-ins, and toolsets with other team members using Dropbox.
 The SharedShelves pipeline allows any artist to share plug-ins by simply pasting .gizmo or .nk
 files into a shared Dropbox folder. The SharedShelves script will reference the Dropbox folder and when Nuke launches, 
