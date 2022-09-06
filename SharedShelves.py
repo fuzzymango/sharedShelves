@@ -256,7 +256,7 @@ class SharedShelves:
 
         try:
             save_path = nuke.getFilename('Publish Selection to Dropbox', '*.nk; *.gizmo',
-                                         folder_path + publish_name + nuke_ext, 'save')
+                                         folder_path + '/' + publish_name + nuke_ext, 'save')
 
             if not save_path:
                 return
