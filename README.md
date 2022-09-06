@@ -43,10 +43,10 @@ if your folder structure appears as below on Dropbox. Set the `dropbox_tools_fol
 
 >Using the above examples, my SharedShelves class would look like this: 
 `s = SharedShelves(dropbox_tools_folder='sharedNukeTools', icon='G:/Dropbox/sharedNukeTools/icons/sharedToolbar.png', account_type='personal')`
-4. Edit the `folder_name` parameter for both `s.sync_gizmos()` and `s.sync_toolsets()` to EXACTLY match the name Dropbox folder where your gizmos and toolsets are stored. 
+5. Edit the `folder_name` parameter for both `s.sync_gizmos()` and `s.sync_toolsets()` to EXACTLY match the name Dropbox folder where your gizmos and toolsets are stored. 
 For example, if your gizmos are stored in `Dropbox/sharedNukeTools/myGizmos`, your sync_gizmos would be `s.sync_gizmos("myGizmos")`. 
 By default, `sync_gizmos()` will look for a folder named "gizmos" and `sync_toolsets()` will look for a folder named "ToolSets".
-5. Launch Nuke!
+6. Launch Nuke!
 
 ## ADDING AND REMOVING SHARED TOOLS
 To add a ToolSet or gizmo to the shared toolsets, place the .nk or .gizmo file containing the node or ToolSet in your
